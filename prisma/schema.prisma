@@ -1,0 +1,68 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider     = "postgresql"
+  url          = env("DATABASE_URL")
+  relationMode = "prisma"
+}
+
+model User {
+  id        BigInt      @id @unique @default(autoincrement())
+  email     String      @unique
+  name      String?
+  password  String
+  Posts     Post[]
+  Favorites Favorites[]
+}
+
+model Post {
+  authorId    BigInt
+  publishedAt DateTime @default(now())
+
+  title     String
+  content   String
+  published Boolean @default(false)
+
+  author    User        @relation(fields: [authorId], references: [id])
+  Comments  Comment[]
+  Favorites Favorites[]
+
+  @@id([authorId, publishedAt])
+  @@index([authorId], name: "idx_post_author_id")
+}
+
+model Comment {
+  postAuthorId    BigInt
+  postPublishedAt DateTime
+  commenterId     BigInt
+  publishedAt     DateTime
+
+  Post Post @relation(fields: [postAuthorId, postPublishedAt], references: [authorId, publishedAt])
+
+  @@id([postAuthorId, postPublishedAt, commenterId, publishedAt])
+  @@index([commenterId, publishedAt], name: "idx_comment_commenter_id")
+  @@index([postAuthorId, postPublishedAt], name: "idx_comment_post_id")
+}
+
+model Favorites {
+  userId          BigInt
+  postAuthorId    BigInt
+  postPublishedAt DateTime
+  favoritedAt     DateTime @default(now())
+
+  User User @relation(fields: [userId], references: [id])
+  Post Post @relation(fields: [postAuthorId, postPublishedAt], references: [authorId, publishedAt])
+
+  @@id([userId, postAuthorId, postPublishedAt])
+  @@index([userId], name: "idx_favorites_user_id")
+  @@index([postAuthorId, postPublishedAt], name: "idx_favorites_post_id")
+}

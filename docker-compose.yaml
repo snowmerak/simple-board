@@ -1,0 +1,36 @@
+version: "3"
+services:
+  postgres:
+    image: postgres:17
+    container_name: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: XVCmMBKLQJB5cOuu13tm
+      POSTGRES_DB: postgres
+    volumes:
+      - simple_board_data:/var/lib/postgresql/data
+  meili:
+    image: getmeili/meilisearch:latest
+    container_name: meili
+    environment:
+      MEILI_MASTER_KEY: "Lwq29D8Ko2mLMzlXTQG2"
+    ports:
+      - "7700:7700"
+    volumes:
+      - fulltext_search_data:/data.ms
+  valkey:
+    image: valkey/valkey:8
+    container_name: valkey
+    ports:
+      - "6379:6379"
+    volumes:
+      - valkey_data:/data
+      - ./config/valkey.conf:/etc/valkey/valkey.conf
+    command: ["valkey-server", "/etc/valkey/valkey.conf"]
+
+volumes:
+  simple_board_data:
+  fulltext_search_data:
+  valkey_data:
